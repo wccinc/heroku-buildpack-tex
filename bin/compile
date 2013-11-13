@@ -1,16 +1,22 @@
 #!/usr/bin/env bash
 # bin/compile <build-dir> <cache-dir>
 
+# fail fast
+set -e
+
 BUILD_DIR=$1
 CACHE_DIR=$2
 BIN_DIR=$(cd $(dirname $0); pwd) # absolute path
 
-TEXLIVE_DOMAIN="https://heroku-buildpack-tex.s3.amazonaws.com"
-VERSION=`curl $TEXLIVE_DOMAIN/VERSION -s`
-TEXLIVE_URL="$TEXLIVE_DOMAIN/texlive-$VERSION.tar.gz"
+
+TEXLIVE_INSTALLER_URL="http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz"
+
 TEXLIVE_HOME=$BUILD_DIR/.texlive
 TEXLIVE_CACHE=$CACHE_DIR/.texlive
-PATH=$TEXLIVE_HOME/bin/x86_64-linux:$PATH
+TOOL_CACHE=$CACHE_DIR/.tools 
+TOOL_BIN=$CACHE_DIR/.tools/bin
+TEMPDIR=$TEMP/.texlive
+PATH=$TEXLIVE_HOME/bin/x86_64-linux:$TOOL_BIN:$PATH
 PROFILE_D=$BUILD_DIR/.profile.d/texlive.sh
 
 # Output helpers
@@ -19,31 +25,83 @@ source $BIN_DIR/utils
 # Prepare the various paths
 mkdir -p $TEXLIVE_HOME
 mkdir -p $TEXLIVE_CACHE
+mkdir -p $TOOL_BIN 
+mkdir -p $TOOL_CACHE
 mkdir -p `dirname $PROFILE_D`
 
-if [ -f $TEXLIVE_CACHE/VERSION ] && (( $VERSION == `cat $TEXLIVE_CACHE/VERSION` )); then
-    # Get TeX Live from the cache if possible
-    build-step "Installing TeX Live $VERSION from cache"
-    cp -R $TEXLIVE_CACHE/* $TEXLIVE_HOME
-else
-    # Get TeX Live from S3 if necessary
-    if [ -f "$TEXLIVE_CACHE/VERSION" ]; then
-        build-step "Upgrading to TeX Live $VERSION"
-    else
-        build-step "Fetching TeX Live $VERSION"
-    fi
+if [ ! -f $TOOL_BIN/wget ]; then
+    build-step "compiling wget"
 
-    curl $TEXLIVE_URL -s -o - | tar xzf - -C $TEXLIVE_HOME
+    build-info "download"
+    WGET_BUILD=/tmp/wget-build/
+    WGET_URL="http://ftp.gnu.org/gnu/wget/wget-1.13.4.tar.bz2"
+    mkdir -p $WGET_BUILD 
+    cd $WGET_BUILD
+    curl $WGET_URL -L -s -o - | tar -xjf - -C $WGET_BUILD
 
-    # Make sure the cache is empty
-    rm -rf $TEXLIVE_CACHE/*
+    cd wget-1.13.4
+    build-info "configure"
+    ./configure --prefix=$CACHE_DIR/.tools/wget --without-ssl > /tmp/wget_configure 2>&1
 
-    # Store a copy of it in the cache so it doesn't have to be fetched again
-    cp -R $TEXLIVE_HOME/* $TEXLIVE_CACHE
+    build-info "make"
+    make > /tmp/wget_make 2>&1
 
-    # Store the version for later
-    echo $VERSION > $TEXLIVE_CACHE/VERSION
+    build-info "make install"
+    make install > /tmp/wget_make_install 2>&1
+
+    cp $CACHE_DIR/.tools/wget/bin/wget $TOOL_BIN/
 fi
+
+if [ "$(ls -A $TEXLIVE_CACHE)" ]; then
+    cp -R $TEXLIVE_CACHE/* $TEXLIVE_HOME
+fi
+
+if [ ! -f $TEXLIVE_HOME/install-tl ]; then
+    build-step "getting install-tl"
+    curl $TEXLIVE_INSTALLER_URL -L -s -o - | tar --strip-components=1 -xzf - -C $TEXLIVE_HOME
+fi
+
+if [ ! `which pdflatex` ]; then
+    build-step "Installing TeX Live"
+
+    PROF=$BIN_DIR/../conf/texlive.profile
+
+    echo "TEXDIR $TEXLIVE_HOME" >> $PROF 
+    echo "TEXMFCONFIG $TEXLIVE_HOME/var/texmf-config" >> $PROF
+    echo "TEXMFHOME $TEXLIVE_HOME/var/texmf" >> $PROF 
+    echo "TEXMFLOCAL $TEXLIVE_HOME/texmf-local" >> $PROF 
+    echo "TEXMFSYSCONFIG $TEXLIVE_HOME/texmf-config" >> $PROF 
+    echo "TEXMFSYSVAR $TEXLIVE_HOME/texmf-var" >> $PROF 
+    echo "TEXMFVAR $TEXLIVE_HOME/var/texmf-var" >> $PROF 
+
+    cd $TEXLIVE_HOME 
+
+    ./install-tl --profile=$PROF
+fi
+
+tlmgr update --self
+
+# install user-provided-packages
+if [ -f $BUILD_DIR/texlive.packages ]; then
+    build-step "installed custom packages"
+    while read line           
+    do           
+        build-info "$line"
+        tlmgr install $line
+    done <$BUILD_DIR/texlive.packages
+fi
+
+build-step "upgrading installed packages"
+tlmgr update --all
+
+build-step "cleanup"
+rm -rf $TEXLIVE_HOME/texmf-dist/doc
+
+# Make sure the cache is empty
+rm -rf $TEXLIVE_CACHE/*
+
+# Store a copy of it in the cache so it doesn't have to be fetched again
+cp -R $TEXLIVE_HOME/* $TEXLIVE_CACHE/
 
 # Check for an essential binary to make sure it's installed
 if [ ! `which pdflatex` ]; then

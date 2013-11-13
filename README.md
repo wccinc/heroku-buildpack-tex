@@ -1,21 +1,17 @@
 Heroku buildpack: TeX
 =====================
 
-This is a [Heroku buildpack](http://devcenter.heroku.com/articles/buildpacks)
-for working with TeX documents. In its raw form, it simply bundles a working
-TeX Live environment into your Heroku app and doesn't do anything else with it.
-
+This is a [Heroku buildpack](http://devcenter.heroku.com/articles/buildpacks) for working with TeX documents. 
 
     $ ls
 
-    $ heroku create --buildpack git://github.com/holiture/heroku-buildpack-tex.git
+    $ heroku create --buildpack git://github.com/syphar/heroku-buildpack-tex.git
 
     $ git push heroku master
     ...
     -----> Heroku receiving push
     -----> Fetching custom build pack... done
     -----> TeX app detected
-    -----> Fetching TeX Live 20120511
     ...
 
 This can be useful if you simply want to play around with TeX Live without
@@ -41,35 +37,29 @@ This will bundle TeX Live into your instance without impacting your existing
 system. You can then call out to executables like `pdflatex` as you would on
 any other machine.
 
-Auto-build
-----------
+How does it work?
+-----------------
+- In this form, it uses [install-tl](http://www.tug.org/texlive/doc/install-tl.html) it installs a working TeX Live into your application into your Heroku app.
 
-Another potential use is simply for building a specific document. This can be
-useful if you're working with a document pipeline that outputs LaTeX documents,
-but not often enough to need it integrated into a larger system. Rather than
-having to build and install TeX Live yourself, you can use this buildpack to
-do it for you.
+- it installs `scheme-small` to have a working minimal setup
 
-This funcionality is provided by a special `autobuild` branch. To activate it,
-simply append `#autobuild` to the buildpack URL and make sure you have a
-`document.tex` at the root of your repository. It can reference other .tex files
-as necessary, as long as the main file is called `document.tex`.
+- it uses [tlmgr](http://www.tug.org/texlive/tlmgr.html) to install custom packages.
 
-    $ ls
-    document.tex
+- On subsequent pushes it uses [tlmgr](http://www.tug.org/texlive/tlmgr.html) to update all installed packages. 
 
-    $ heroku create --buildpack git://github.com/holiture/heroku-buildpack-tex.git#autobuild
+- to save space, we cleanup the installation a bit (removing documentation for example). 
 
-    $ git push heroku master
-    ...
-    -----> Heroku receiving push
-    -----> Fetching custom build pack... done
-    -----> TeX app detected
-    -----> Fetching TeX Live 20120511
-    -----> Building document.tex
-           Wrote 3 pages to document.pdf
+The downside of this method compared to a prepackaged TeX-Live is that the first push will take some minutes. But we get more flexibility and custom packages!
 
-This will output a PDF file, which you can download it using your browser as
-`document.pdf` at the root of your app's URL. For example, if your document app
-is called `silent-night-1234`, you'd be able to find your completed document at
-`http://silent-night-1234.herokuapp.com/document.pdf`.
+custom packages
+---------------
+You can add a file called `texlive.packages` in your repo: 
+
+    collection-bibtexextra
+    collection-fontsextra
+    collection-langgerman
+    collection-xetex
+
+It looks similar to the default `texlive.profile`, but without the `1` or `0` at the end. The buildpack runs `tlmgr install` on every line in this file. So you can use single packages or these collections. 
+
+When you add custom packages, keep in mind that Heroku has a maximum compressed slug-size of 300 MB (see [here](https://devcenter.heroku.com/articles/slug-compiler#slug-size)). And TeX-Live can get quite big. 
