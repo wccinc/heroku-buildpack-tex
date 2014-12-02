@@ -34,12 +34,12 @@ if [ ! -f $TOOL_BIN/wget ]; then
 
     build-info "download"
     WGET_BUILD=/tmp/wget-build/
-    WGET_URL="http://ftp.gnu.org/gnu/wget/wget-1.13.4.tar.bz2"
+    WGET_URL="http://ftp.gnu.org/gnu/wget/wget-1.16.tar.gz"
     mkdir -p $WGET_BUILD 
     cd $WGET_BUILD
-    curl $WGET_URL -L -s -o - | tar -xjf - -C $WGET_BUILD
+    curl $WGET_URL -L -s -o - | tar -xzf - -C $WGET_BUILD
 
-    cd wget-1.13.4
+    cd wget-1.16
     build-info "configure"
     ./configure --prefix=$CACHE_DIR/.tools/wget --without-ssl > /tmp/wget_configure 2>&1
 
