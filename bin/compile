@@ -34,7 +34,7 @@ if [ ! -f $TOOL_BIN/wget ]; then
 
     build-info "download"
     WGET_BUILD=/tmp/wget-build/
-    WGET_URL="http://ftp.gnu.org/gnu/wget/wget-1.16.tar.gz"
+    WGET_URL="http://ftp.halifax.rwth-aachen.de/gnu/wget/wget-1.16.tar.gz"
     mkdir -p $WGET_BUILD 
     cd $WGET_BUILD
     curl $WGET_URL -L -s -o - | tar -xzf - -C $WGET_BUILD
