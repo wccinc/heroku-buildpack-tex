@@ -86,14 +86,12 @@ tlmgr update --all
 # install user-provided-packages
 if [ -f $BUILD_DIR/texlive.packages ]; then
     build-step "installed custom packages"
-    tlmgr list --only-installed | sed 's/i \([^:]*\).*/\1/' | sort > $CACHE_DIR/installed.packages
-    cat $BUILD_DIR/texlive.packages | sort > $CACHE_DIR/requirements.packages
-    diff $CACHE_DIR/requirements.packages $CACHE_DIR/installed.packages | grep '<' | sed 's/< \(.*\)/\1/' > $CACHE_DIR/missing.packages
+    MISSING_PACKAGES=$(export LC_ALL=C; comm -23 <(cat $BUILD_DIR/texlive.packages | sort) <(tlmgr list --only-installed | sed 's/i \([^:]*\).*/\1/' | sort))
     while read line
     do
         build-info "$line"
         tlmgr install $line
-    done <$CACHE_DIR/missing.packages
+    done <$MISSING_PACKAGES
 fi
 
 build-step "cleanup"
