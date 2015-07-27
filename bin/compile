@@ -83,7 +83,7 @@ tlmgr update --self
 
 # install user-provided-packages
 if [ -f $BUILD_DIR/texlive.packages ]; then
-    build-step "installed custom packages"
+    build-step "installing custom packages"
     while read line           
     do           
         build-info "$line"
