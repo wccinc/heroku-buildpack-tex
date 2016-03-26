@@ -9,7 +9,7 @@ CACHE_DIR=$2
 BIN_DIR=$(cd $(dirname $0); pwd) # absolute path
 
 
-TEXLIVE_INSTALLER_URL="http://ctan.math.ca/tex-archive/systems/texlive/tlnet/install-tl-unx.tar.gz"
+TEXLIVE_INSTALLER_URL="http://ctan.sharelatex.com/tex-archive/systems/texlive/tlnet/install-tl-unx.tar.gz"
 
 TEXLIVE_HOME=$BUILD_DIR/.texlive
 TEXLIVE_CACHE=$CACHE_DIR/.texlive
@@ -52,9 +52,9 @@ if [ ! -f $TOOL_BIN/wget ]; then
     cp $CACHE_DIR/.tools/wget/bin/wget $TOOL_BIN/
 fi
 
-if [ "$(ls -A $TEXLIVE_CACHE)" ]; then
-    cp -R $TEXLIVE_CACHE/* $TEXLIVE_HOME
-fi
+# if [ "$(ls -A $TEXLIVE_CACHE)" ]; then
+#     cp -R $TEXLIVE_CACHE/* $TEXLIVE_HOME
+# fi
 
 if [ ! -f $TEXLIVE_HOME/install-tl ]; then
     build-step "getting install-tl"
