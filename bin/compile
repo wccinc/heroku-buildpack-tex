@@ -9,7 +9,7 @@ CACHE_DIR=$2
 BIN_DIR=$(cd $(dirname $0); pwd) # absolute path
 
 
-TEXLIVE_INSTALLER_URL="http://ctan.sharelatex.com/tex-archive/systems/texlive/tlnet/install-tl-unx.tar.gz"
+TEXLIVE_INSTALLER_URL="http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz"
 
 TEXLIVE_HOME=$BUILD_DIR/.texlive
 TEXLIVE_CACHE=$CACHE_DIR/.texlive
