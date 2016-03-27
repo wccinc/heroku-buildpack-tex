@@ -52,9 +52,9 @@ if [ ! -f $TOOL_BIN/wget ]; then
     cp $CACHE_DIR/.tools/wget/bin/wget $TOOL_BIN/
 fi
 
-# if [ "$(ls -A $TEXLIVE_CACHE)" ]; then
-#     cp -R $TEXLIVE_CACHE/* $TEXLIVE_HOME
-# fi
+if [ "$(ls -A $TEXLIVE_CACHE)" ]; then
+    cp -R $TEXLIVE_CACHE/* $TEXLIVE_HOME
+fi
 
 if [ ! -f $TEXLIVE_HOME/install-tl ]; then
     build-step "getting install-tl"
@@ -83,12 +83,8 @@ tlmgr update --self
 
 # install user-provided-packages
 if [ -f $BUILD_DIR/texlive.packages ]; then
-    build-step "installing custom packages"
-    while read line           
-    do           
-        build-info "$line"
-        tlmgr install $line
-    done <$BUILD_DIR/texlive.packages
+    build-step "installing custom packages specified in texlive.packages"
+    tlmgr install $(cat $BUILD_DIR/texlive.packages)
 fi
 
 build-step "upgrading installed packages"
