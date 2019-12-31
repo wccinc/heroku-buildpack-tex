@@ -8,6 +8,7 @@ BUILD_DIR=$1
 CACHE_DIR=$2
 BIN_DIR=$(cd $(dirname $0); pwd) # absolute path
 
+build-info "MAW Tex Buildpack Dec 30 2019"
 
 TEXLIVE_INSTALLER_URL="http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz"
 
@@ -80,9 +81,9 @@ if [ ! `which pdflatex` ]; then
 fi
 
 function cat_tlmgr_debug_log() {
-  if [ -f $TEXLIVE_HOME/var/texmf-var/web2c/tlmgr.log ]; then
+  if [ -f $BUILD_DIR/.texlive/texmf-var/web2c/tlmgr.log ]; then
     echo "Found log..."
-    cat $TEXLIVE_HOME/var/texmf-var/web2c/tlmgr.log
+    cat $BUILD_DIR/.texlive/texmf-var/web2c/tlmgr.log
   fi
 }
 
