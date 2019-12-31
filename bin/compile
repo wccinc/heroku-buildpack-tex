@@ -8,8 +8,6 @@ BUILD_DIR=$1
 CACHE_DIR=$2
 BIN_DIR=$(cd $(dirname $0); pwd) # absolute path
 
-build-info "MAW Tex Buildpack Dec 30 2019"
-
 TEXLIVE_INSTALLER_URL="http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz"
 
 TEXLIVE_HOME=$BUILD_DIR/.texlive
@@ -22,6 +20,7 @@ PROFILE_D=$BUILD_DIR/.profile.d/texlive.sh
 
 # Output helpers
 source $BIN_DIR/utils
+build-info "MAW Tex Buildpack Dec 30 2019"
 
 # Prepare the various paths
 mkdir -p $TEXLIVE_HOME
