@@ -20,7 +20,7 @@ PROFILE_D=$BUILD_DIR/.profile.d/texlive.sh
 
 # Output helpers
 source $BIN_DIR/utils
-build-info "MAW Tex Buildpack Dec 30 2019"
+build-info "MAW Tex Buildpack Dec 30 2019 9:25 PM"
 
 # Prepare the various paths
 mkdir -p $TEXLIVE_HOME
