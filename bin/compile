@@ -79,15 +79,6 @@ if [ ! `which pdflatex` ]; then
     ./install-tl --profile=$PROF
 fi
 
-function cat_tlmgr_debug_log() {
-  if [ -f $BUILD_DIR/.texlive/texmf-var/web2c/tlmgr.log ]; then
-    echo "Found log..."
-    cat $BUILD_DIR/.texlive/texmf-var/web2c/tlmgr.log
-  fi
-}
-
-trap cat_tlmgr_debug_log EXIT
-
 tlmgr update --self
 
 # install user-provided-packages
