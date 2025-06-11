@@ -52,9 +52,7 @@ if [ ! -f $TOOL_BIN/wget ]; then
     cp $CACHE_DIR/.tools/wget/bin/wget $TOOL_BIN/
 fi
 
-if [ "$(ls -A $TEXLIVE_CACHE)" ]; then
-    cp -R $TEXLIVE_CACHE/* $TEXLIVE_HOME
-fi
+
 
 if [ ! -f $TEXLIVE_HOME/install-tl ]; then
     build-step "getting install-tl"
